@@ -1,0 +1,123 @@
+<script>
+    // Insert Data
+    // Triggers when user clicks the 'Save' button with #btnsave id
+    $("#btnsave").click(function (){
+        //Retrieves the values of course id, name and description from the respective input fields in the form
+        let output = ""; // Initialize output variable
+        let course_id = $("#courseid").val();
+        let name = $("#nameid").val();
+        let description = $("#descid").val();
+
+        //Line below is Django's inbuilt Form security measure against CSRF attacks
+        let csrf = $("input[name=csrfmiddlewaretoken]").val();
+
+        //Conditional Statement below checks if any require form fields is empty and logs message in console indicating the missing field if empty.
+        if (name === ""){
+            console.log("please enter name");
+        } else if (description === ""){
+            console.log("please enter description");
+        }
+        //If all fields are filled, it constructs a JS object 'mydata' containing course data and CSRF token.
+        else {
+            //console.log('name: ', name);
+            //console.log('email: ', email);
+            //console.log('password: ', password);
+            let mydata = {
+                course_id: course_id,
+                name: name,
+                description: description,
+                csrfmiddlewaretoken: csrf
+            }
+
+            // Code block below sends AJAX POST request to server via 'course_save_data' URL
+            // URL should be defined in Django's urls.py configuration
+            $.ajax({
+                url: "{% url 'course_save_data' %}",
+                method: "POST",
+                data: mydata,
+                // Upon successful submission, 'success' function updates the message displayed to user.
+                success: function (data){
+                    let x = data.course_data;
+                    if (data.status === "Save"){
+                        $("#msg").text("Form Submitted Successfuly");
+                        $("#msg").show();
+
+                        // Updates table with new course_data and resets form
+                        for (let i = 0; i < x.length; i++) {
+                            output += "<tr><td>" + x[i].id + "</td><td>" + x[i].name + "</td><td>" + x[i].description + "</td><td> <input type='button' class='btn btn-warning btn-sm btn-edit' value='Edit' data-sid='" + x[i].id + "'/> <input type='button' class='btn btn-danger btn-sm btn-del' value='Delete' data-sid='" + x[i].id + "'/></td></tr>";
+                        }
+                        $("#tbody").html(output);
+                        $("#coursed").val("");
+                        // Reset form after adding a student
+                        $("form")[0].reset();
+                    }
+                    if (data.status === 0){
+                        //console.log("Unable To Save Form");
+                        $("#msg").text("Unable To Save Form");
+                        $("#msg").show();
+                        // Set student id empty
+                        $("#coursed").val("");
+                        $("form")[0].reset();
+                    }
+                },
+            });
+        }
+    });
+
+    // Delete data
+    // Handles deletion of course data when user clicks 'Delete' button in row
+    $("tbody").on("click", ".btn-del", function (){
+        // Retrieves course id from 'data-sid' attribute of clicked button
+        let id = $(this).attr("data-sid");
+        let csrf = $("input[name=csrfmiddlewaretoken]").val();
+
+        // Constructs JS object 'mydata' containing the course ID and CSRF token
+        mydata = { course_id: id, csrfmiddlewaretoken: csrf };
+        mythis = this;
+
+        // Sends AJAX POST request to server with the URL 'delete' as defined in urls.py
+        $.ajax({
+            url: "{% url 'delete' %}",
+            method: "POST",
+            data: mydata,
+            success: function (data){
+                // Upon successful deletion, its updates message shown to user and fades out corresponding table row
+                if (data.status === 1){
+                    //console.log('Data deleted successfully');
+                    $("#msg").text("Data deleted successfully");
+                    $("#msg").show();
+                    // Fades out deleted row
+                    $(mythis).closest("tr").fadeOut();
+                }
+                if (data.status === 0){
+                    //console.log('Unable to delete data');
+                    $("#msg").text("Unable to delete data");
+                    $("#msg").show();
+                }
+            },
+        });
+    });
+
+    // Edit data when user clicks 'Edit' button
+    $("tbody").on("click", ".btn-edit", function (){
+        let id = $(this).attr("data-sid");
+        let csrf = $("input[name=csrfmiddlewaretoken]").val();
+        // Constructing JS object containing course_id and CSRF token
+        mydata = { course_id: id, csrfmiddlewaretoken: csrf };
+
+        // Sends AJAX POST request via URL course_edit_data as defined in urls.py
+        $.ajax({
+            url: "{% url 'course_edit_data' %}",
+            method: "POST",
+            data: mydata,
+            // Upon successful retrieval of course data, updates the form fields with retrieved data
+            success: function (data){
+                console.log("data: ", data);
+                // Insert course data to form field
+                $("#courseid").val(data.id);
+                $("#nameid").val(data.name);
+                $("#descid").val(data.description);
+            },
+        });
+    });
+</script>

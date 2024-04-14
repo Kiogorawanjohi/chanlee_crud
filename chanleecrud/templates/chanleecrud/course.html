@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'chanleecrud/css/bootstrap.css' %}" />
+    <title>Django Assignment</title>
+    <style>
+        /* Sidebar styling */
+        .sidebar {
+            height: 100%;
+            width: 100px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #333;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+            color: #fff;
+        }
+        .sidebar a:hover {
+            background-color: #3c6ade;
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+    <div class="sidebar">
+        <a href="/">Admissions</a>
+        <a href="/course">Courses</a>
+    </div>
+
+    <div class="container mt-5">
+        <h2 class="text-center alert alert-danger">
+            eMobilis CRUD Project
+        </h2>
+        <div class="row">
+            <div class="col-sm-4">
+                <h4 class="text-center alert alert-info">
+                    Add Course
+                </h4>
+
+{#                Student Registration form starts here...#}
+                <form action="/course" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="courseid" id="courseid" />
+                    {{ form.as_p }}
+                    <input type="button" class="btn btn-success"
+                        id="btnsave" value="Save" />
+                </form><br />
+                <div id="msg" class="alert alert-danger" style="display: none"></div>
+            </div>
+            <div class="col-sm-7">
+                <h4 class="text-center alert alert-info">
+                    Registered Courses
+                </h4>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody">
+                        {% for course in courses %}
+                        <tr>
+                            <td scope="col">{{course.id}}</td>
+                            <td scope="col">{{course.name}}</td>
+                            <td scope="col">{{course.description}}</td>
+                            <td scope="col">
+                                <input type="button" data-sid="{{course.id}}"
+                                    class="btn btn-warning btn-sm btn-edit"
+                                    value="Edit" />
+                            </td>
+                            <td scope="col">
+                                <input type="button" data-sid="{{course.id}}"
+                                    class="btn btn-danger btn-sm btn-del"
+                                    value="Delete" />
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'chanleecrud/js/jquery.js' %}"></script>
+    <script src="{% static 'chanleecrud/js/popper.js' %}"></script>
+    <script src="{% static 'chanleecrud/js/bootstrap.js' %}"></script>
+    {% include "chanleecrud/ajax2.html" %}
+</body>
+</html>
